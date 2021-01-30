@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Holtwood+One+SC&display=swap">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css">
+    <title>Player Demo</title>
+    <style>
+    html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        -webkit-user-select: none; /* Safari */
+        -ms-user-select: none; /* IE 10 and IE 11 */
+        user-select: none; /* Standard syntax */
+    }
+    body {
+        background: url({{BACKGROUND}});
+        background-size: cover;
+        overflow: hidden;
+    }
+    .btn {
+        box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.6) !important; /* tricky */
+        border-color: transparent !important; /* tricky */
+        color: #fff;
+    }
+    .btn-success {
+        background-color: #0652DD;
+    }
+    .btn-warning {
+        background-color: #44bd32;
+    }
+    .btn-danger {
+        background-color: #D980FA;
+    }
+    .btn-success:hover,
+    .btn-success:active,
+    .btn-success:focus {
+        background-color: #0097e6;
+        color: #fff;
+    }
+    .btn-warning:hover,
+    .btn-warning:active,
+    .btn-warning:focus {
+        background-color: #009432;
+        color: #fff;
+    }
+    .btn-danger:hover,
+    .btn-danger:active,
+    .btn-danger:focus {
+        background-color: #B53471;
+        color: #fff;
+    }
+    .vol-size {
+        font-size: 1.3rem;
+    }
+    .radio-name {
+        font-size: 2rem;
+        margin-top: 5vh;
+        color: #1289A7;
+     }
+    .status {
+        color: #fff;
+    }
+    .radio-buttons {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        margin-right: 10vw;
+        margin-left: 10vw;
+        margin-top: 10vh;
+        background-color: rgba(0, 162, 255, 0.5);
+        box-shadow: 0 0 10px 1px rgba(1, 2, 71, 0.6) !important;
+        border-radius: 10px;
+    }
+    .radio-volume {
+        color: #0652DD;
+        margin-left: 10vw;
+        margin-right: 10vw;
+        display: inline-block;
+        margin-top: 10vh;
+        text-shadow: 
+            0 0 5px #FFF, 
+            0 0 10px #FFF, 
+            0 0 15px #FFF, 
+            0 0 20px #49ff18, 
+            0 0 30px #49FF18, 
+            0 0 40px #49FF18, 
+            0 0 55px #49FF18, 
+            0 0 75px #49ff18, 
+            2px 2px 2px rgba(175,44,206,0);
+    }
+    .radio-volume i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-3">
+        <div class="text-center">
+            <h2 class="radio-name">{{RADIONAME}}</h2>
+            <p class="status mt-5">
+                [<span class="icon">
+                    <i class="fas fa-info-circle"></i>
+                </span>] 
+                <span class="text">Loading...</span>
+            </p>
+            <audio id="player" src="#" autoplay></audio>
+            <div class="radio-buttons">
+                <button type="button" id="play" class="btn btn-success btn-round shadow">
+                    <i class="far fa-play-circle"></i> Play
+                </button>
+                <button type="button" id="pause" class="btn btn-danger shadow">
+                    <i class="far fa-pause-circle"></i> Pause
+                </button>
+                <button type="button" id="stop" class="btn btn-warning shadow">
+                    <i class="far fa-stop-circle"></i> Stop
+                </button>
+            </div>
+            <div class="radio-volume">
+                <div class="form-group">
+                    <label for="vol">
+                        <i class="fas fa-volume-up"></i>
+                    </label>
+                    <input type="range" class="form-control-range" id="vol" value="75" maxvalue="100%">
+                    <span class="vol-size">75%</span>
+                  </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.ripples/0.5.3/jquery.ripples.min.js"></script>
+    <script>
+    const statusText = $('.status .text');
+    const statusIcon = $('.status .icon');
+    const radioName = $('.radio-name');
+    const volSize = $('.vol-size');
+    const player = $('#player');
+    const url = "{{STREAM_URL}}";
+    
+    const zeroPad = (num, places) => String(num).padStart(places, '0'); // adds zeros to numbers below than 10
+
+    const longShadow = (element, width, color) => {
+        let css = "";
+        for (var i = 1;i<width;i++){
+            css += `${color} ${i}px ${i}px,`;
+        }
+        css += `${color} ${width}px ${width}px`;
+        element.css('textShadow', css);
+    }
+
+    let status = false;
+
+    player.prop('volume', 0.75); // default
+
+    $(document).ready(function() {
+        if (player.attr('src') == '#') {
+            player.attr('src', url);
+        }
+        if (false === status) { // autoplay
+            player.get(0).play().then(function() { // can autoplay
+                status = true;
+                statusText.html('Playing...');
+                statusIcon.html('<i class="fas fa-volume-up"></i>');
+            }).catch(function() { // throws error, ask to play manual
+                statusText.html('Click <strong>Play</strong> to listen!');
+            });
+        }
+        $('#play').click(function() {
+            if (false === status) {
+                status = true;
+                if (player.attr('src') == '#') {
+                    player.attr('src', url);
+                }
+                player.get(0).play();
+                statusText.html('Playing...');
+                statusIcon.html('<i class="fas fa-volume-up"></i>');
+            }
+        }),
+        $('#pause').click(function() {
+            if (true === status) {
+                status = false;
+                player.get(0).pause();
+                statusText.html('Paused');
+                statusIcon.html('<i class="fas fa-volume-mute"></i>');
+            }
+        }),
+        $('#stop').click(function() {
+            if (true === status) {
+                status = false;
+                player.attr('src', '#');
+                player.get(0).pause();
+                statusText.html('Stopped');
+                statusIcon.html('<i class="fas fa-volume-mute"></i>');
+            }
+        }),
+        $("#vol").change(function() {
+            let volume = $(this).val();
+            volSize.html(zeroPad(volume, 2) + '%');
+            player.prop("volume", volume / 100);
+        }),
+        $('html').ripples({ // water effects
+            resolution: 256,
+            interactive: true,
+            perturbance: 0.1
+        }),
+        longShadow(radioName, 15, 'rgba(0, 0, 0, 0.02)'); // long shadow effect
+    });
+    </script>
+</body>
+</html>
