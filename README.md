@@ -7,9 +7,9 @@ Well, I'm releasing these files so you can use them as a base and create your ow
 
 ## Replaceable
 You should look for these tags in the code and replace them with their values.
-**{{BACKGROUND}}**
+* **{{BACKGROUND}}**
   *  Your background URL, e.g: https://i.imgur.com/aaaa.png
-**{{RADIONAME}}**
+* **{{RADIONAME}}**
   * Your radio name, eg: Test Radio
-**{{STREAM_URL}}**
+* **{{STREAM_URL}}**
   * Your streaming URL (compatible with ShoutCast & IceCast)
